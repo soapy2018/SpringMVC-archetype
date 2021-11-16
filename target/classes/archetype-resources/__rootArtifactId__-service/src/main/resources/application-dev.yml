@@ -1,0 +1,62 @@
+server:
+  port: 8080
+spring:
+  application:
+    name: ${rootArtifactId}-service
+  datasource:
+    url: jdbc:mysql://192.168.8.71:3306/supos_app_${rootArtifactId}?useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Shanghai
+    username: root
+    password: bluetron123
+    schema:
+      - classpath:sql/schema.sql
+    data:
+      - classpath:sql/data.sql
+    continue-on-error: true
+    initialization-mode: always
+    sql-script-encoding: utf-8
+    hikari:
+      maximumPoolSize: 10
+      minimumIdle: 2
+      idleTimeout: 600000
+      connectionTimeout: 30000
+      maxLifetime: 1800000
+  redis:
+    host: 192.168.8.107
+    port: 6379
+    password: bluetron123
+  cloud:
+    nacos:
+      discovery:
+        server-addr: 192.168.8.106:8848
+  mvc:
+    throw-exception-if-no-handler-found: true
+mybatis-plus:
+  mapper-locations: classpath*:mappers/*.xml
+  configuration:
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+app:
+  package-version: 20200706
+k3s:
+  postfix:
+bluetron:
+  sdk:
+    debug-enable: true
+    enabled: true
+    request-url: http://192.168.8.100
+    request-port: 8080
+    app-id: 3bdd16c94781442fb8a073fe236f0c2a
+    app-secret: 927314860E0BEFF375782D984047D6E2
+    app-version: 2.70.01.00-200911-C
+    read-timeout: 30
+    app-data:
+      factory-model: app_template_network
+    accept-language: zh-cn
+    aksk-enable: false
+logging:
+  level:
+    root: info
+    com.bluetron.app: debug
+logstash:
+  host: 192.168.8.71
+
+

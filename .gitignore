@@ -1,0 +1,31 @@
+# Mobile Tools for Java (J2ME)
+.vscode/
+.factorypath
+.mtj.tmp/
+# Package Files #
+*.jar
+*.war
+*.ear
+# virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
+hs_err_pid*
+#project
+.project
+.classpath
+.settings/*
+.idea/*
+.metadata
+*.class
+*.prefs
+.launch
+.DS_Store
+.svn/*
+# logs
+/logs
+*.log
+*.log.*
+*/target/*
+*.flattened-pom.xml
+**/*.iml
+**/.idea
+**/.settings/*
+**/.flattened*

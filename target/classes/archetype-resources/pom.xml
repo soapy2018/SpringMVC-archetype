@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+    <modelVersion>4.0.0</modelVersion>
+    <artifactId>${artifactId}</artifactId>
+    <version>${my-version}</version>
+    <groupId>${groupId}</groupId>
+    <packaging>pom</packaging>
+
+    <parent>
+        <groupId>com.bluetron.app</groupId>
+        <version>1.0.4.RELEASE</version>
+        <artifactId>bluetron-app-parent</artifactId>
+    </parent>
+
+    <properties>
+        <my-version>${version}</my-version>
+        <revision>1.0.0.RELEASE</revision>
+        <revision-max>1.0.4.RELEASE</revision-max>
+        <high-version>1.0.2.RELEASE</high-version>
+        <bluetron-app-starter-sdk.version>1.1.3-SNAPSHOT</bluetron-app-starter-sdk.version>
+        <bluetron-java-sdk.version>1.1.6-SNAPSHOT</bluetron-java-sdk.version>
+    </properties>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>${groupId}</groupId>
+                <artifactId>${artifactId}</artifactId>
+                <version>${version}</version>
+            </dependency>
+            <dependency>
+                <groupId>${groupId}</groupId>
+                <artifactId>${artifactId}-api</artifactId>
+                <version>${version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.bluetron.app</groupId>
+                <artifactId>bluetron-app-common-basic</artifactId>
+                <version>${revision-max}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.bluetron.app</groupId>
+                <artifactId>bluetron-app-starter-sdk</artifactId>
+                <version>${bluetron-app-starter-sdk.version}</version>
+            </dependency>
+            <!-- 见http://gitlab.nb.bluetron.cn/bluetron-app-middle/bluetron-app-middle-sdk -->
+            <dependency>
+                <groupId>com.bluetron.sdk</groupId>
+                <artifactId>bluetron-java-sdk</artifactId>
+                <version>${bluetron-java-sdk.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.bluetron.app</groupId>
+                <artifactId>bluetron-app-middle-calculation</artifactId>
+                <version>${revision}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.bluetron.app</groupId>
+                <artifactId>bluetron-app-common-autoconfigure</artifactId>
+                <version>${revision-max}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.bluetron.app</groupId>
+                <artifactId>bluetron-app-common-i18n</artifactId>
+                <version>${revision}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.bluetron.app</groupId>
+                <artifactId>bluetron-app-middle-cache</artifactId>
+                <version>${revision}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.bluetron.app</groupId>
+                <artifactId>bluetron-app-common-database</artifactId>
+                <version>${high-version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.bluetron.app</groupId>
+                <artifactId>bluetron-app-middle-cache</artifactId>
+                <version>${revision}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.springframework.cloud</groupId>
+                <artifactId>spring-cloud-starter-kubernetes-all</artifactId>
+                <version>${spring-cloud-starter-kubernetes-all.version}</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>flatten-maven-plugin</artifactId>
+                <configuration>
+                    <updatePomFile>true</updatePomFile>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>flatten</id>
+                        <phase>process-resources</phase>
+                        <goals>
+                            <goal>flatten</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>flatten.clean</id>
+                        <phase>clean</phase>
+                        <goals>
+                            <goal>clean</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-archetype-plugin</artifactId>
+                <version>3.0.0</version>
+            </plugin>
+        </plugins>
+    </build>
+
+</project>

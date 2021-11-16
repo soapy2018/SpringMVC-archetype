@@ -1,0 +1,65 @@
+server:
+  port: 8080
+spring:
+  application:
+    name: ${rootArtifactId}-service
+  datasource:
+    url: jdbc:mysql://\$\{app_MYSQL_SERVICE_SERVICE_HOST:192.168.8.107\}:\$\{app_MYSQL_SERVICE_SERVICE_PORT:3306\}/supos_app_${rootArtifactId}?useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Shanghai
+    username: root
+    password: bluetron123
+    schema:
+      - classpath:sql/schema.sql
+    data:
+      - classpath:sql/data.sql
+    hikari:
+      maximumPoolSize: 10
+      minimumIdle: 2
+      idleTimeout: 600000
+      connectionTimeout: 30000
+      maxLifetime: 1800000
+  redis:
+    host: \$\{app_REDIS_SERVICE_SERVICE_HOST:192.168.8.107\}
+    port: \$\{app_REDIS_SERVICE_SERVICE_PORT:6379\}
+    password: bluetron123
+  mvc:
+    throw-exception-if-no-handler-found: true
+  main:
+    allow-bean-definition-overriding: true
+  cloud:
+    kubernetes:
+      client:
+        enabled: true
+        username: admin
+        password: 92338d78e508041129b78a87781b56bd
+mybatis-plus:
+  mapper-locations: classpath*:mappers/*.xml
+#  configuration:
+#    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+app:
+  package-version: 202008070900
+k3s:
+  postfix: -service
+bluetron:
+  sdk:
+    debug-enable: false
+    enabled: true
+    request-url: \$\{SUPOS_SUPOS_ADDRESS:http://dt.57.nb.dev.supos.net\}
+    request-port: 80
+    app-id: \$\{SUPOS_APP_ID:App_bac090d688004de9bf927b9ff66bfca7\}
+    iam-account-id: \$\{SUPOS_APP_ACCOUNT_ID:552987919581184\}
+    iam-secret-key: \$\{SUPOS_APP_SECRET_KEY:c07582d917b924f217b94c38b2d4484c\}
+    app-version: 2.80.01.00
+    read-timeout: 30
+    app-data:
+      factory-model: app_template_network
+    accept-language: zh-cn
+    aksk-enable: true
+logging:
+  level:
+    root: info
+    com.bluetron.app: info
+logstash:
+  host: 192.168.8.71
+
+
+

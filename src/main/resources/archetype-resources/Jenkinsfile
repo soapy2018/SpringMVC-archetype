@@ -1,0 +1,124 @@
+pipeline {
+  agent any
+
+  environment {
+      DOCKER_REGISTRY = "docker.nb.bluetron.cn/bluetron"
+      //部署服务器ip
+      IP = "192.168.8.107"
+      //sonar服务器地址
+      SONAR_HOST = "http://192.168.8.92:9000"
+      IS_PKG = false
+      APP_LIST = "All"
+      COMMIT_MSG = "msg"
+      COMMITTER_NAME = sh returnStdout: true ,script: "git log --pretty=format:'%an' -1 ${env.GIT_COMMIT}"
+  }
+
+  stages {
+    stage('变量初始化'){
+        steps {
+            script {
+                def exitValue = sh returnStdout: true ,script: "git log --oneline -1 ${env.GIT_COMMIT}"
+                COMMIT_MSG = exitValue.split(" ")[1];
+                def pkgMatcher = COMMIT_MSG.trim() =~ /pkg\[.*\]:.*/
+                IS_PKG = pkgMatcher.matches();
+                if(IS_PKG){
+                    def appMatcher = COMMIT_MSG.trim() =~ /\[.*\]/
+                    def appListStr = appMatcher[0].minus("[").minus("]")
+                    APP_LIST = appListStr.split(",")
+                }
+            }
+        }
+    }
+    stage('sonar扫描') {
+       when {
+        expression { IS_PKG }
+       }
+       steps {
+        script{
+            withMaven(maven: 'maven'){
+                sh "mvn clean -Ddockerfile.skip=true test sonar:sonar -Dsonar.host.url=${SONAR_HOST}"
+            }
+        }
+       }
+    }
+    stage('构建镜像') {
+      when {
+        expression { IS_PKG }
+      }
+      steps {
+        script{
+            sh 'mvn -U clean install -Dmaven.test.skip=true'
+            for(item in APP_LIST){
+                sh "cd ${item}/target; mv *.jar app.jar"
+                sh "cd ${item};mvn dockerfile:build dockerfile:push"
+            }
+        }
+      }
+    }
+    stage('部署镜像'){
+      when {
+        expression { IS_PKG }
+      }
+      steps {
+        script {
+            def sshServer = getRemoteServer("${IP}")
+            for(item in APP_LIST){
+                def datas = readYaml file: "${item}/src/main/resources/application.yml"
+                def servicePort = datas.server.port
+                def pomDatas = readMavenPom file: "${item}/pom.xml"
+                def projectName = pomDatas.getArtifactId()
+                def version = pomDatas.getVersion()
+                def imageName = "${DOCKER_REGISTRY}/${projectName}:${version}";
+                // 更新或下载镜像
+                echo "Pull the image: ${imageName}"
+                sshCommand remote: sshServer, command: "docker pull ${imageName}"
+                try{
+                    // 停止容器
+                    echo "Stop the container: ${projectName}"
+                    sshCommand remote: sshServer, command: "docker stop ${projectName}"
+                    // 删除容器
+                    echo "Remove the container: ${projectName}"
+                    sshCommand remote: sshServer, command: "docker rm -f ${projectName}"
+                }catch(ex){}
+
+                // 启动容器
+                echo "Start the container: ${projectName}"
+                sshCommand remote: sshServer, command: "docker run -d -p ${servicePort}:${servicePort} --name ${projectName} --env-file /home/app/.env ${imageName}"
+
+                // 生成tar包
+                echo "save the tar: ${projectName}.tar"
+                sshCommand remote: sshServer, command: "docker save -o /home/app/${projectName}.tar ${imageName}"
+
+                // 清理none镜像
+                echo "Remove the image: ${imageName}"
+                def clearNoneSSH = "n=`docker images | grep  '<none>' | wc -l`; if [ \$n -gt 0 ]; then docker rmi `docker images | grep  '<none>' | awk '{print \$3}'`; fi"
+                sshCommand remote: sshServer, command: "${clearNoneSSH}"
+            }
+        }
+      }
+    }
+  }
+  post {
+          failure {
+              emailext body: """<p>FAILED: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]':</p>
+                                  <p>Check console output at "<a href="${env.BUILD_URL}">${env.JOB_NAME} [${env.BUILD_NUMBER}]</a>"</p>""",
+              subject: "[FAILED]: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]'",
+              to: "${env.COMMITTER_NAME}"
+          }
+  }
+}
+
+//获取远程服务器
+def getRemoteServer(ip){
+    def remote = [:]
+    remote.name = ip
+    remote.host = ip
+    remote.port = 22
+    remote.allowAnyHosts = true
+    withCredentials([usernamePassword(credentialsId: '0ede08aa-6a5d-473b-ae44-3bcc4bb568fe', passwordVariable: 'password', usernameVariable: 'userName')
+    ]) {
+        remote.user = "${userName}"
+        remote.password = "${password}"
+    }
+    return remote
+}
